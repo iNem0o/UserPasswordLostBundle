@@ -1,0 +1,15 @@
+services:
+#    user_password_lost.example:
+#        class: inem0o\UserPasswordLostBundle\Example
+#        arguments: ["@service_id", "plain_value", %parameter%]
+    user_password_lost.form.new_password:
+            class: inem0o\UserPasswordLostBundle\Form\NewPasswordType
+            arguments: ['@translator.default','%user_password_lost.forms%']
+            tags:
+                - { name: form.type }
+    user_password_lost.form.password_reset:
+            class: inem0o\UserPasswordLostBundle\Form\PasswordResetRequestType
+            arguments: ['@translator.default','%user_password_lost.forms%']
+            tags:
+                - { name: form.type }
+
