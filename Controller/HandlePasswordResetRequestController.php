@@ -67,7 +67,7 @@ class HandlePasswordResetRequestController extends Controller
             if($this->getParameter('user_password_lost.display_success_flashbag')){
                 $request->getSession()->getFlashBag()->add('success', $this->get('translator.default')->trans('user_password_lost_bundle.flashbag.success', [], 'userPasswordLostBundle'));
             }
-
+ 
             return $this->redirectToRoute($route_to_redirect_success);
         }
 
