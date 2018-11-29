@@ -75,3 +75,20 @@ user_password_lost:
     into the folder
 
     ./app/Resources/translations/userPasswordLostBundle.*.xliff
+
+
+## Events
+
+The UserPasswordLostBundle dispatches an event when the reset has been successful : ```inem0o.userpasswordlostbundle.successful_reset```
+The event contains the user who requested a new password, accessible with a ```$event->getUser()``` getter.
+You have to register a listener in order to catch it.
+
+Example :
+(Considering you named your event **PasswordResetSuccessListener** and your callback method **onSuccessfulReset**)
+``` yaml
+# src/Acme/AppBundle/Resources/config/services.yml
+acme.user.reset_password_success.listener:
+        class: Acme\AppBundle\EventListener\PasswordResetSuccessListener
+        tags:
+          - { name: kernel.event_listener, event: inem0o.userpasswordlostbundle.successful_reset, method: onSuccessfulReset }
+```

@@ -5,6 +5,7 @@ namespace inem0o\UserPasswordLostBundle\Controller;
 use AppBundle\AppBundle;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequest;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequestIdentity;
+use inem0o\UserPasswordLostBundle\Event\PasswordResetRequestSuccessfulEvent;
 use inem0o\UserPasswordLostBundle\Form\NewPasswordType;
 use inem0o\UserPasswordLostBundle\Form\PasswordResetRequestType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -64,7 +65,12 @@ class HandlePasswordResetRequestController extends Controller
             $manager->persist($user);
             $manager->flush();
 
-            if($this->getParameter('user_password_lost.display_success_flashbag')){
+            $this->get('event_dispatcher')->dispatch(
+                PasswordResetRequestSuccessfulEvent::SUCCESSFUL,
+                new PasswordResetRequestSuccessfulEvent($user)
+            );
+
+            if ($this->getParameter('user_password_lost.display_success_flashbag')) {
                 $request->getSession()->getFlashBag()->add('success', $this->get('translator.default')->trans('user_password_lost_bundle.flashbag.success', [], 'userPasswordLostBundle'));
             }
 
