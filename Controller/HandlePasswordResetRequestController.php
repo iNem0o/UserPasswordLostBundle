@@ -6,25 +6,27 @@ use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequest;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequestIdentity;
 use inem0o\UserPasswordLostBundle\Event\PasswordResetRequestSuccessfulEvent;
 use inem0o\UserPasswordLostBundle\Form\NewPasswordType;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
-class HandlePasswordResetRequestController extends Controller
+class HandlePasswordResetRequestController extends AbstractController
 {
-    public function indexAction(Request $request, $token, TranslatorInterface $translator)
+    public function indexAction(Request $request, $token, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, EventDispatcherInterface $eventDispatcher)
     {
-        $user_repo_name            = $this->getParameter("user_password_lost.user_repo_name");
-        $user_email_column_name    = $this->getParameter("user_password_lost.user_email_column_name");
-        $route_to_redirect_fail    = $this->getParameter("user_password_lost.route_to_redirect_on_failure");
+        $user_repo_name = $this->getParameter("user_password_lost.user_repo_name");
+        $user_email_column_name = $this->getParameter("user_password_lost.user_email_column_name");
+        $route_to_redirect_fail = $this->getParameter("user_password_lost.route_to_redirect_on_failure");
         $route_to_redirect_success = $this->getParameter("user_password_lost.route_to_redirect_on_success");
 
         $doctrine = $this->getDoctrine();
-        $manager  = $doctrine->getManager();
+        $manager = $doctrine->getManager();
 
         // check reset request
         $reset_request_repo = $doctrine->getRepository("UserPasswordLostBundle:PasswordResetRequest");
-        $reset_request      = $reset_request_repo->findOneBy(
+        $reset_request = $reset_request_repo->findOneBy(
             [
                 'token'  => $token,
                 'status' => PasswordResetRequest::STATUS_PENDING,
@@ -36,7 +38,7 @@ class HandlePasswordResetRequestController extends Controller
 
         // check user from reset request
         $user_repo = $doctrine->getRepository($user_repo_name);
-        $user      = $user_repo->findOneBy([$user_email_column_name => $reset_request->getUserEmail()]);
+        $user = $user_repo->findOneBy([$user_email_column_name => $reset_request->getUserEmail()]);
         if (null == $user) {
             return $this->redirectToRoute($route_to_redirect_fail);
         }
@@ -47,8 +49,7 @@ class HandlePasswordResetRequestController extends Controller
         if ($form_new_password->isSubmitted() && $form_new_password->isValid()) {
             $new_password = $form_new_password->getData()['plainPassword'];
 
-            $password = $this->get('security.password_encoder')
-                ->encodePassword($user, $new_password);
+            $password = $encoderFactory->getEncoder($user)->encodePassword($new_password, $user->getSalt());
             $user->setPassword($password);
 
             $reset_request->setStatus(PasswordResetRequest::STATUS_USED);
@@ -65,10 +66,7 @@ class HandlePasswordResetRequestController extends Controller
             $manager->persist($user);
             $manager->flush();
 
-            $this->get('event_dispatcher')->dispatch(
-                PasswordResetRequestSuccessfulEvent::SUCCESSFUL,
-                new PasswordResetRequestSuccessfulEvent($user)
-            );
+            $eventDispatcher->dispatch(new PasswordResetRequestSuccessfulEvent($user));
 
             if ($this->getParameter('user_password_lost.display_success_flashbag')) {
                 $request->getSession()->getFlashBag()->add('success', $translator->trans('user_password_lost_bundle.flashbag.success', [], 'userPasswordLostBundle'));

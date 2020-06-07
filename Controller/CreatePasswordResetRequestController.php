@@ -5,27 +5,28 @@ namespace inem0o\UserPasswordLostBundle\Controller;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequest;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequestIdentity;
 use inem0o\UserPasswordLostBundle\Form\PasswordResetRequestType;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Translation\TranslatorInterface;
 
-class CreatePasswordResetRequestController extends Controller
+class CreatePasswordResetRequestController extends AbstractController
 {
 
-    public function indexAction(Request $request, TranslatorInterface $translator)
+    public function indexAction(Request $request, TranslatorInterface $translator, MailerInterface $mailer)
     {
-
-        $user_repo_name         = $this->getParameter("user_password_lost.user_repo_name");
+        $user_repo_name = $this->getParameter("user_password_lost.user_repo_name");
         $user_email_column_name = $this->getParameter("user_password_lost.user_email_column_name");
-        $email_from             = $this->getParameter("user_password_lost.email_from");
+        $email_from = $this->getParameter("user_password_lost.email_from");
 
         $doctrine = $this->getDoctrine();
-        $manager  = $doctrine->getManager();
+        $manager = $doctrine->getManager();
 
         $user_repo = $doctrine->getRepository($user_repo_name);
 
         $reset_request_repo = $doctrine->getRepository("UserPasswordLostBundle:PasswordResetRequest");
-        $reset_request      = new PasswordResetRequest();
+        $reset_request = new PasswordResetRequest();
 
         $request_create_form = $this->createForm(PasswordResetRequestType::class, $reset_request);
         $request_create_form->handleRequest($request);
@@ -54,7 +55,7 @@ class CreatePasswordResetRequestController extends Controller
                 // create pending request
                 $found_used_token = null;
                 do {
-                    $token            = bin2hex(random_bytes(32));
+                    $token = bin2hex(random_bytes(32));
                     $found_used_token = $reset_request_repo->findOneBy(['token' => $token]);
                 } while (null !== $found_used_token);
 
@@ -74,17 +75,15 @@ class CreatePasswordResetRequestController extends Controller
 
                 // sending email
                 $email_subject = $translator->trans('user_password_lost_bundle.email.subject', [], 'userPasswordLostBundle');
-                $message       = (new \Swift_Message($email_subject))
-                    ->setFrom($email_from)
-                    ->setTo($email)
-                    ->setBody(
-                        $this->renderView(
-                            '@UserPasswordLost/email/password_reset_request.html.twig',
-                            array('password_reset_request' => $pending_request)
-                        ),
-                        'text/html'
-                    );
-                $this->get('mailer')->send($message);
+                $message = new Email();
+                $message->from($email_from)->to($email)->html(
+                    $this->renderView(
+                        '@UserPasswordLost/email/password_reset_request.html.twig',
+                        array('password_reset_request' => $pending_request)
+                    )
+                );
+
+                $mailer->send($message);
             } else {
                 sleep(2);   // fake email
             }
