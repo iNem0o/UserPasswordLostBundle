@@ -1,13 +1,13 @@
 create_password_reset_request:
     path:     /login/create_password_reset_request
-    defaults: { _controller: UserPasswordLostBundle:CreatePasswordResetRequest:index }
+    defaults: { _controller: inem0o\UserPasswordLostBundle\Controller\CreatePasswordResetRequestController::indexAction }
 
 confirm_password_reset_request:
     path:     /login/confirm_password_reset_request
-    defaults: { _controller: UserPasswordLostBundle:CreatePasswordResetRequest:confirm }
+    defaults: { _controller: inem0o\UserPasswordLostBundle\Controller\CreatePasswordResetRequestController::confirmAction }
 
 handle_password_reset_request:
     path:     /login/handle_password_reset_request/{token}
-    defaults: { _controller: UserPasswordLostBundle:HandlePasswordResetRequest:index }
+    defaults: { _controller: inem0o\UserPasswordLostBundle\Controller\HandlePasswordResetRequestController::indexAction }
     requirements:
       token: '[a-z0-9]+'

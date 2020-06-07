@@ -53,6 +53,7 @@ class PasswordResetRequestIdentity
         $identity = new PasswordResetRequestIdentity();
         $identity->setIpAddress($request->getClientIp());
         $identity->setIpAddressSourcePort($request->server->get('REMOTE_PORT'));
+
         return $identity;
     }
 

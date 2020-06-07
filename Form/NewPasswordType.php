@@ -2,13 +2,12 @@
 
 namespace inem0o\UserPasswordLostBundle\Form;
 
-use Symfony\Component\Translation\Translator;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank as AssertNotBlank;
+use Symfony\Component\Translation\Translator;
 
 class NewPasswordType extends AbstractType
 {
