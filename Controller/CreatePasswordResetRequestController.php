@@ -13,6 +13,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CreatePasswordResetRequestController extends AbstractController
 {
+
     public function indexAction(Request $request, TranslatorInterface $translator, MailerInterface $mailer)
     {
         $user_repo_name         = $this->getParameter("user_password_lost.user_repo_name");
@@ -29,6 +30,7 @@ class CreatePasswordResetRequestController extends AbstractController
 
         $request_create_form = $this->createForm(PasswordResetRequestType::class, $reset_request);
         $request_create_form->handleRequest($request);
+
         if ($request_create_form->isSubmitted() && $request_create_form->isValid()) {
             $email = $reset_request->getUserEmail();
 
@@ -80,8 +82,7 @@ class CreatePasswordResetRequestController extends AbstractController
                         $this->renderView(
                             '@UserPasswordLost/email/password_reset_request.html.twig',
                             ['password_reset_request' => $pending_request]
-                        ),
-                        'text/html'
+                        )
                     );
                 $mailer->send($email);
             } else {
@@ -101,9 +102,6 @@ class CreatePasswordResetRequestController extends AbstractController
 
     public function confirmAction(Request $request)
     {
-        return $this->render(
-            '@UserPasswordLost/create_password_reset_request/confirm.html.twig',
-            []
-        );
+        return $this->render('@UserPasswordLost/create_password_reset_request/confirm.html.twig');
     }
 }

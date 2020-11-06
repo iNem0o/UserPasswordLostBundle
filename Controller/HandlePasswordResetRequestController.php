@@ -14,7 +14,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class HandlePasswordResetRequestController extends AbstractController
 {
-    public function indexAction(Request $request, UserPasswordEncoderInterface $encoder,EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, $token)
+
+    public function indexAction(Request $request, UserPasswordEncoderInterface $encoder, EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, $token)
     {
         $user_repo_name            = $this->getParameter("user_password_lost.user_repo_name");
         $user_email_column_name    = $this->getParameter("user_password_lost.user_email_column_name");
