@@ -6,13 +6,16 @@ use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequest;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequestIdentity;
 use inem0o\UserPasswordLostBundle\Event\PasswordResetRequestSuccessfulEvent;
 use inem0o\UserPasswordLostBundle\Form\NewPasswordType;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-class HandlePasswordResetRequestController extends Controller
+class HandlePasswordResetRequestController extends AbstractController
 {
-    public function indexAction(Request $request, $token, TranslatorInterface $translator)
+
+    public function indexAction(Request $request, UserPasswordEncoderInterface $encoder, EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, $token)
     {
         $user_repo_name            = $this->getParameter("user_password_lost.user_repo_name");
         $user_email_column_name    = $this->getParameter("user_password_lost.user_email_column_name");
@@ -47,9 +50,7 @@ class HandlePasswordResetRequestController extends Controller
         if ($form_new_password->isSubmitted() && $form_new_password->isValid()) {
             $new_password = $form_new_password->getData()['plainPassword'];
 
-            $password = $this->get('security.password_encoder')
-                ->encodePassword($user, $new_password);
-            $user->setPassword($password);
+            $user->setPassword($encoder->encodePassword($user, $new_password));
 
             $reset_request->setStatus(PasswordResetRequest::STATUS_USED);
             $reset_request->setDateEnd(new \DateTime("now"));
@@ -65,10 +66,7 @@ class HandlePasswordResetRequestController extends Controller
             $manager->persist($user);
             $manager->flush();
 
-            $this->get('event_dispatcher')->dispatch(
-                PasswordResetRequestSuccessfulEvent::SUCCESSFUL,
-                new PasswordResetRequestSuccessfulEvent($user)
-            );
+            $eventDispatcher->dispatch(new PasswordResetRequestSuccessfulEvent($user));
 
             if ($this->getParameter('user_password_lost.display_success_flashbag')) {
                 $request->getSession()->getFlashBag()->add('success', $translator->trans('user_password_lost_bundle.flashbag.success', [], 'userPasswordLostBundle'));
@@ -79,10 +77,10 @@ class HandlePasswordResetRequestController extends Controller
 
         return $this->render(
             '@UserPasswordLost/handle_password_reset_request/index.html.twig',
-            array(
+            [
                 'reset_request'     => $reset_request,
                 'form_new_password' => $form_new_password->createView(),
-            )
+            ]
         );
     }
 }

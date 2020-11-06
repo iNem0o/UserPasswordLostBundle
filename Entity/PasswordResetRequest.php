@@ -12,9 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class PasswordResetRequest
 {
-    const STATUS_PENDING = 0;
-    const STATUS_USED = 1;
-    const STATUS_EXPIRED = 2;
+    public const STATUS_PENDING = 0;
+    public const STATUS_USED = 1;
+    public const STATUS_EXPIRED = 2;
 
     /**
      * @var int
@@ -26,7 +26,7 @@ class PasswordResetRequest
 
     /**
      * @var string
-     * @ORM\Column(name="token", type="string", length=255, unique=true, options={"collation":"utf8_unicode_ci"}))
+     * @ORM\Column(name="token", type="string", length=191, unique=true, options={"collation":"utf8_unicode_ci"}))
      */
     private $token;
 

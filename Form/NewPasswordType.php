@@ -2,23 +2,22 @@
 
 namespace inem0o\UserPasswordLostBundle\Form;
 
-use Symfony\Component\Translation\Translator;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank as AssertNotBlank;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class NewPasswordType extends AbstractType
 {
 
-    /** @var Translator */
+    /** @var TranslatorInterface */
     private $translator;
     /** @var array */
     private $formConfig;
 
-    public function __construct(Translator $translator, $formConfig)
+    public function __construct(TranslatorInterface $translator, $formConfig)
     {
         $this->translator = $translator;
         $this->formConfig = $formConfig;
@@ -32,7 +31,7 @@ class NewPasswordType extends AbstractType
     {
         $fieldConstraints = [];
         foreach ($this->formConfig['constraints'] as $constraint) {
-            if ($constraint['form_name'] == 'form_new_password') {
+            if ($constraint['form_name'] === 'form_new_password') {
                 $fieldConstraints[$constraint['field']][] = new $constraint['class']($constraint['params']);
             }
         }
