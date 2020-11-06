@@ -12,8 +12,9 @@
     }
   ],
   "require": {
-    "php": ">=7",
-    "symfony/framework-bundle": ">=3.0"
+    "php": ">=7.1",
+    "symfony/framework-bundle": ">=4.2 || ^5.0",
+    "symfony/mailer": ">=4.2"
   },
   "autoload": {
     "psr-0": { "inem0o\\UserPasswordLostBundle": "" }

@@ -2,21 +2,19 @@
 
 namespace inem0o\UserPasswordLostBundle\Controller;
 
-use AppBundle\AppBundle;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequest;
 use inem0o\UserPasswordLostBundle\Entity\PasswordResetRequestIdentity;
 use inem0o\UserPasswordLostBundle\Form\PasswordResetRequestType;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Translation\Translator;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-class CreatePasswordResetRequestController extends Controller
+class CreatePasswordResetRequestController extends AbstractController
 {
-    public function indexAction(Request $request)
+    public function indexAction(Request $request, TranslatorInterface $translator, MailerInterface $mailer)
     {
-        /** @var Translator $translator */
-        $translator = $this->get('translator.default');
-
         $user_repo_name         = $this->getParameter("user_password_lost.user_repo_name");
         $user_email_column_name = $this->getParameter("user_password_lost.user_email_column_name");
         $email_from             = $this->getParameter("user_password_lost.email_from");
@@ -30,7 +28,8 @@ class CreatePasswordResetRequestController extends Controller
         $reset_request      = new PasswordResetRequest();
 
         $request_create_form = $this->createForm(PasswordResetRequestType::class, $reset_request);
-        if ($request_create_form->handleRequest($request)->isValid()) {
+        $request_create_form->handleRequest($request);
+        if ($request_create_form->isSubmitted() && $request_create_form->isValid()) {
             $email = $reset_request->getUserEmail();
 
             $user = $user_repo->findOneBy([$user_email_column_name => $email]);
@@ -73,19 +72,18 @@ class CreatePasswordResetRequestController extends Controller
                 $manager->flush();
 
                 // sending email
-                $email_subject = $translator->trans('user_password_lost_bundle.email.subject', [], 'userPasswordLostBundle');
-                $message       = \Swift_Message::newInstance()
-                    ->setSubject($email_subject)
-                    ->setFrom($email_from)
-                    ->setTo($email)
-                    ->setBody(
+                $email = (new Email())
+                    ->subject($translator->trans('user_password_lost_bundle.email.subject', [], 'userPasswordLostBundle'))
+                    ->from($email_from)
+                    ->to($email)
+                    ->html(
                         $this->renderView(
-                            'UserPasswordLostBundle:email:password_reset_request.html.twig',
-                            array('password_reset_request' => $pending_request)
+                            '@UserPasswordLost/email/password_reset_request.html.twig',
+                            ['password_reset_request' => $pending_request]
                         ),
                         'text/html'
                     );
-                $this->get('mailer')->send($message);
+                $mailer->send($email);
             } else {
                 sleep(2);   // fake email
             }
@@ -94,18 +92,18 @@ class CreatePasswordResetRequestController extends Controller
         }
 
         return $this->render(
-            'UserPasswordLostBundle:create_password_reset_request:index.html.twig',
-            array(
+            '@UserPasswordLost/create_password_reset_request/index.html.twig',
+            [
                 'form_password_reset_request' => $request_create_form->createView(),
-            )
+            ]
         );
     }
 
     public function confirmAction(Request $request)
     {
         return $this->render(
-            'UserPasswordLostBundle:create_password_reset_request:confirm.html.twig',
-            array()
+            '@UserPasswordLost/create_password_reset_request/confirm.html.twig',
+            []
         );
     }
 }

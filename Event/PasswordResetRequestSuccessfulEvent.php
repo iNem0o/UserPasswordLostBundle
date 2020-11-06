@@ -2,7 +2,7 @@
 
 namespace inem0o\UserPasswordLostBundle\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class PasswordResetRequestSuccessfulEvent extends Event
 {

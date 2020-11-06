@@ -12,9 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class PasswordResetRequest
 {
-    const STATUS_PENDING = 0;
-    const STATUS_USED = 1;
-    const STATUS_EXPIRED = 2;
+    public const STATUS_PENDING = 0;
+    public const STATUS_USED = 1;
+    public const STATUS_EXPIRED = 2;
 
     /**
      * @var int
