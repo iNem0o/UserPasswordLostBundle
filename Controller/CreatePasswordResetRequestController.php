@@ -25,7 +25,7 @@ class CreatePasswordResetRequestController extends AbstractController
 
         $user_repo = $doctrine->getRepository($user_repo_name);
 
-        $reset_request_repo = $doctrine->getRepository("UserPasswordLostBundle:PasswordResetRequest");
+        $reset_request_repo = $doctrine->getRepository(PasswordResetRequest::class);
         $reset_request      = new PasswordResetRequest();
 
         $request_create_form = $this->createForm(PasswordResetRequestType::class, $reset_request);

@@ -9,13 +9,13 @@ use inem0o\UserPasswordLostBundle\Form\NewPasswordType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class HandlePasswordResetRequestController extends AbstractController
 {
 
-    public function indexAction(Request $request, UserPasswordEncoderInterface $encoder, EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, $token)
+    public function indexAction(Request $request, UserPasswordHasherInterface $userPasswordHasher, EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, $token)
     {
         $user_repo_name            = $this->getParameter("user_password_lost.user_repo_name");
         $user_email_column_name    = $this->getParameter("user_password_lost.user_email_column_name");
@@ -26,7 +26,7 @@ class HandlePasswordResetRequestController extends AbstractController
         $manager  = $doctrine->getManager();
 
         // check reset request
-        $reset_request_repo = $doctrine->getRepository("UserPasswordLostBundle:PasswordResetRequest");
+        $reset_request_repo = $doctrine->getRepository(PasswordResetRequest::class);
         $reset_request      = $reset_request_repo->findOneBy(
             [
                 'token'  => $token,
@@ -50,7 +50,7 @@ class HandlePasswordResetRequestController extends AbstractController
         if ($form_new_password->isSubmitted() && $form_new_password->isValid()) {
             $new_password = $form_new_password->getData()['plainPassword'];
 
-            $user->setPassword($encoder->encodePassword($user, $new_password));
+            $user->setPassword($userPasswordHasher->hashPassword($user, $new_password));
 
             $reset_request->setStatus(PasswordResetRequest::STATUS_USED);
             $reset_request->setDateEnd(new \DateTime("now"));
